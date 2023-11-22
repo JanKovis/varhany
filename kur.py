@@ -8,9 +8,6 @@ from machine import Pin
 wlan = network.WLAN(network.STA_IF)
 wlan.active(True)
 
-kredence.ssid = "kovadlina"
-kredence.password="bezinka128"
-
 def connect_wifi():
     # Connect to WLAN
     wlan.connect(kredence.ssid, kredence.password)
