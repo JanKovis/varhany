@@ -23,10 +23,11 @@ def send_impulses_on_pin(impulse_count: int, pin: Pin, pulse_duration: float = 0
         sleep(pulse_duration)
 
 
+boardLED = Pin("LED", Pin.OUT, value=1)
+
 with open("web.html", "r") as f:
     input_webpage = f.read()
 
-boardLED = Pin("LED", Pin.OUT)
 
 ap = network.WLAN(network.AP_IF)
 ap.config(essid=kredence.ssid, key=kredence.password)
@@ -47,9 +48,9 @@ server_socket.listen(4)  # Allow only one connection at a time
 print(f"Server listening on port {port}")
 
 # assign the right relay GPIO
-hundredsPin = boardLED
-tensPin = boardLED
-onesPin = boardLED
+onesPin = Pin(18, Pin.OUT, value=0)  # ~relay 1
+tensPin = Pin(19, Pin.OUT, value=0)  # ~relay 2
+hundredsPin = Pin(20, Pin.OUT, value=0)  # ~relay 3
 
 while True:
     # Wait for a client to connect
@@ -65,6 +66,11 @@ while True:
         client_socket.send(input_webpage)
         client_socket.close()
         continue
+    print("Try post request to the very end")
+    sleep(0.4)
+    data = client_socket.recv(1024)
+    data_string = data.decode().strip()
+    print("RRReceived data:", data_string)
 
     # what is not explicit GET is taken as a POST
     match = re.search(r"number\s*=\s*(\d+)$", data_string)
