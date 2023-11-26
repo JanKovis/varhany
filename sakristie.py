@@ -8,7 +8,9 @@ import re
 import select
 
 
-def send_impulses_on_pin(impulse_count: int, pin: Pin, pulse_duration: float = 0.1) -> None:
+def send_impulses_on_pin(
+    impulse_count: int, pin: Pin, pulse_duration: float = 0.1
+) -> None:
     # print("Impulses: ", impulse_count)
     pin.off()  # turn off light in every case
     if impulse_count < 1:
@@ -23,9 +25,10 @@ def send_impulses_on_pin(impulse_count: int, pin: Pin, pulse_duration: float = 0
         pin.off()
         sleep(pulse_duration)
 
+
 def number_in_message(msg: bytes) -> int:
     """Try to extract a number on the end of message following the text number=
-       returns None if number is not present"""
+    returns None if number is not present"""
     if msg is None:
         return None
     msg = msg.decode().strip()
@@ -35,7 +38,8 @@ def number_in_message(msg: bytes) -> int:
         return None
     return int(match.group(1))
 
-boardLED = Pin("LED", Pin.OUT, value=1)  # signalize the power presence 
+
+boardLED = Pin("LED", Pin.OUT, value=1)  # signalize the power presence
 
 with open("web.html", "r") as f:
     input_webpage = f.read()
@@ -76,9 +80,11 @@ while True:
         client_socket.send(input_webpage)
         client_socket.close()
         continue
-    
+
     nr = number_in_message(data)
-    if nr is None:  # iPhone Safari browser has nasty habbit to send POST contents a bit later
+    if (
+        nr is None
+    ):  # iPhone Safari browser has nasty habbit to send POST contents a bit later
         poller = select.poll()
         poller.register(client_socket, select.POLLIN)
         poll_result = poller.poll(300)
@@ -92,11 +98,11 @@ while True:
                 nr = number_in_message(data)
                 if nr is not None:
                     break
-                
+
     if nr is None:
         client_socket.close()
         continue
-    
+
     print("NR> ", nr)
 
     client_socket.send(f"<html><body>Nastavuje se cislo {nr}</body></html>")
@@ -107,13 +113,13 @@ while True:
     nr -= hundreds * 100
 
     # just to visually divide
-    sleep(1)
+    # sleep(1)
 
     tens = nr // 10
     send_impulses_on_pin(tens, tensPin)
     nr -= tens * 10
 
     # just to visually divide
-    sleep(1)
+    # sleep(1)
 
     send_impulses_on_pin(nr, onesPin)
