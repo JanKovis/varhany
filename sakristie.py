@@ -45,7 +45,7 @@ with open("web.html", "r") as f:
     input_webpage = f.read()
 
 ap = network.WLAN(network.AP_IF)
-ap.config(essid=kredence.ssid, key=kredence.password)
+ap.config(essid=kredence.ssid, key=kredence.password, pm=network.WLAN.PM_NONE)
 ap.active(True)
 
 while ap.active == False:
@@ -74,7 +74,7 @@ while True:
 
     # Receive and print data from the client
     data = client_socket.recv(1024)
-    print("Received: ", data)
+    print("Received1: ", data)
 
     if b"GET" in data:
         client_socket.send(input_webpage)
@@ -88,13 +88,13 @@ while True:
         poller = select.poll()
         poller.register(client_socket, select.POLLIN)
         poll_result = poller.poll(300)
-        print("PR: ", poll_result)
         if not poll_result:  # timed out
             client_socket.close()
             continue
         for _, event in poll_result:
             if event & select.POLLIN:
                 data = client_socket.recv(1024)
+                print("Received2: ", data)
                 nr = number_in_message(data)
                 if nr is not None:
                     break
