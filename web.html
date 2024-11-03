@@ -2,24 +2,24 @@
 <html>
 
 <head>
-    <title>Číslo písně</title>
+    <title>Varhany</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
 </head>
 
 <body>
 
-    <h2>Zadejte číslo:</h2>
+    <h2>Varhany</h2>
 
     <form action="http://192.168.4.1:80" method="POST">
-        <label for="number">Číslo:</label>
+        <label for="number">
+            Přidat číslo:
+        </label>
         <input type="number" name="number" min="1" max="999" inputmode="numeric" required>
 
-        <br>
-        <br>
-
-        <input type="submit" value="Poslat">
+        <button type="submit">Poslat</button>
     </form>
+    <p>Nebo</p>
     <div id="btns">
         <button type="submit">+1</button>
         <button type="submit">+10</button>
@@ -37,14 +37,22 @@
     })
 </script>
 <style>
+    form {
+        display: flex;
+        gap: 1rem;
+    }
+
+    form>input {
+        flex-grow: 1;
+    }
+
     #btns {
         display: flex;
         flex-direction: column;
-        height: 70vh;
+        height: 65vh;
     }
 
     #btns>button {
-        appearance: unset;
         flex-grow: 1;
         font-size: 3rem;
     }
