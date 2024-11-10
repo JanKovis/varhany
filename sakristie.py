@@ -41,7 +41,7 @@ def number_in_message(msg: bytes) -> int:
 
 boardLED = Pin("LED", Pin.OUT, value=1)  # signalize the power presence
 
-with open("web.html", "r") as f:
+with open("web.min.html", "r") as f:
     input_webpage = f.read()
 
 ap = network.WLAN(network.AP_IF)

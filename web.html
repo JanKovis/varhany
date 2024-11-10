@@ -1,22 +1,61 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>Číslo písně</title>
+    <title>Varhany</title>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
 </head>
+
 <body>
 
-<h2>Zadejte číslo:</h2>
+    <h2>Varhany</h2>
 
-<form action="http://192.168.4.1:80" method="POST">
-    <label for="number">Číslo:</label>
-    <input type="number" id="number" name="number" min="1" max="999" required>
+    <form action="http://192.168.4.1:80" method="POST">
+        <label for="number">
+            Přidat číslo:
+        </label>
+        <input type="number" name="number" min="1" max="999" inputmode="numeric" required>
 
-    <br>
-    <br>
-
-    <input type="submit" value="Poslat">
-</form>
-
+        <button type="submit">Poslat</button>
+    </form>
+    <p>Nebo</p>
+    <div id="btns">
+        <button type="submit">+1</button>
+        <button type="submit">+10</button>
+        <button type="submit">+100</button>
+    </div>
 </body>
+<script>
+    document.querySelectorAll("#btns>button").forEach((btn, i) => {
+        btn.addEventListener("click", () => {
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "http://192.168.4.1:80", true);
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.send("number=" + ["001", "010", "100"][i]);
+        })
+    })
+</script>
+<style>
+    form {
+        display: flex;
+        gap: 1rem;
+    }
+
+    form>input {
+        flex-grow: 1;
+    }
+
+    #btns {
+        display: flex;
+        flex-direction: column;
+        height: 65vh;
+    }
+
+    #btns>button {
+        flex-grow: 1;
+        font-size: 3rem;
+    }
+</style>
+
 </html>
