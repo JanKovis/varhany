@@ -41,7 +41,7 @@ def number_in_message(msg: bytes) -> int:
 
 boardLED = Pin("LED", Pin.OUT, value=1)  # signalize the power presence
 
-with open("web.min.html", "r") as f:
+with open("web.html", "r") as f:
     input_webpage = f.read()
 
 ap = network.WLAN(network.AP_IF)
@@ -58,7 +58,7 @@ print(ap.ifconfig())
 port = 80
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.bind(("0.0.0.0", port))  # Listen on all available interfaces
-server_socket.listen(4)  # Allow only one connection at a time
+server_socket.listen(5)  # Allow only few connections at a time
 
 print(f"Server listening on port {port}")
 
@@ -67,59 +67,66 @@ onesPin = Pin(18, Pin.OUT, value=0)  # ~relay 1
 tensPin = Pin(19, Pin.OUT, value=0)  # ~relay 2
 hundredsPin = Pin(20, Pin.OUT, value=0)  # ~relay 3
 
+numbers_to_set = []
+
+poller = select.poll()
+poller.register(server_socket, select.POLLIN)
+
 while True:
-    # Wait for a client to connect
-    client_socket, client_address = server_socket.accept()
-    print("Connection from", client_address)
+    something_has_been_done = False
+    ready = poller.poll(-1)  # no timeout on polling
 
-    # Receive and print data from the client
-    data = client_socket.recv(1024)
-    print("Received1: ", data)
+    if len(ready) > 0:
+        something_has_been_done = True
+        for poller_record in ready:
+            socket_with_data = poller_record[0]
+            if socket_with_data is server_socket:
+                new_connection_socket, new_connection_address = server_socket.accept()
+                print(f"Incoming connection from {new_connection_address}")
+                poller.register(new_connection_socket, select.POLLIN)
+            else:
+                try:
+                    data = socket_with_data.recv(1024)
+                except OSError as e:
+                    poller.unregister(socket_with_data)
+                    continue
+                    
+                print("Received: ", data)
+                
+                if len(data) == 0:
+                    poller.unregister(socket_with_data)
+                    continue
 
-    if b"GET" in data:
-        client_socket.send(input_webpage)
-        client_socket.close()
-        continue
+                if b"GET" in data:
+                    socket_with_data.send(input_webpage)
+                    socket_with_data.close()
+                    poller.unregister(socket_with_data)
+                    continue
 
-    nr = number_in_message(data)
-    if (
-        nr is None
-    ):  # iPhone Safari browser has nasty habbit to send POST contents a bit later
-        poller = select.poll()
-        poller.register(client_socket, select.POLLIN)
-        poll_result = poller.poll(300)
-        if not poll_result:  # timed out
-            client_socket.close()
-            continue
-        for _, event in poll_result:
-            if event & select.POLLIN:
-                data = client_socket.recv(1024)
-                print("Received2: ", data)
                 nr = number_in_message(data)
                 if nr is not None:
-                    break
+                    numbers_to_set.append(nr)
+                    print(f"Enqueued number {nr}")
+                    socket_with_data.send(f"<html><body>Nastavuje se cislo {nr}</body></html>")
+                    sleep(0.01)
+                    socket_with_data.close()
+                    poller.unregister(socket_with_data)
 
-    if nr is None:
-        client_socket.close()
-        continue
+    if len(numbers_to_set):
+        something_has_been_done = True
 
-    print("NR> ", nr)
+        nr = numbers_to_set.pop()
+        print("setting NR> ", nr)
 
-    client_socket.send(f"<html><body>Nastavuje se cislo {nr}</body></html>")
-    client_socket.close()
+        hundreds = nr // 100
+        send_impulses_on_pin(hundreds, hundredsPin)
+        nr -= hundreds * 100
 
-    hundreds = nr // 100
-    send_impulses_on_pin(hundreds, hundredsPin)
-    nr -= hundreds * 100
+        tens = nr // 10
+        send_impulses_on_pin(tens, tensPin)
+        nr -= tens * 10
 
-    # just to visually divide
-    # sleep(1)
+        send_impulses_on_pin(nr, onesPin)
 
-    tens = nr // 10
-    send_impulses_on_pin(tens, tensPin)
-    nr -= tens * 10
-
-    # just to visually divide
-    # sleep(1)
-
-    send_impulses_on_pin(nr, onesPin)
+    if not something_has_been_done:
+        sleep(0.5)
