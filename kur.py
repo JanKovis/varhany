@@ -7,6 +7,8 @@ from machine import Pin
 
 wlan = network.WLAN(network.STA_IF)
 wlan.active(True)
+wlan.config(pm=network.WLAN.PM_NONE)
+print("PowerManagement wanted: ", network.WLAN.PM_NONE, " real ", wlan.config("pm"))
 
 
 def connect_wifi() -> str:
@@ -45,7 +47,7 @@ class ButtonHandler:
         for number, button_entry in self.buttons.items():
             now = time.ticks_ms()
             diff = time.ticks_diff(now, button_entry.sent_recently_timestamp)
-            if diff < 200:  # do not send more often than 200 ms
+            if diff < 300:  # do not send more often than 200 ms
                 continue
 
             if button_entry.button_pin.value() == 1:
