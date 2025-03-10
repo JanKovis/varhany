@@ -9,7 +9,7 @@ import select
 
 
 def send_impulses_on_pin(
-    impulse_count: int, pin: Pin, pulse_duration: float = 0.1
+    impulse_count: int, pin: Pin, pulse_duration: float = 0.03
 ) -> None:
     # print("Impulses: ", impulse_count)
     pin.off()  # turn off light in every case
@@ -129,4 +129,4 @@ while True:
         send_impulses_on_pin(nr, onesPin)
 
     if not something_has_been_done:
-        sleep(0.5)
+        sleep(0.1)
